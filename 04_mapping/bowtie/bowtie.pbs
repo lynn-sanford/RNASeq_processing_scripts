@@ -1,0 +1,87 @@
+### Set the job name
+#PBS -N bowtie
+
+### Run in the queue named "long8gb"
+#PBS -q long8gb
+
+### Use the bourne again shell
+#PBS -S /bin/bash
+
+### Pass enviroment variables to the job
+#PBS -V
+
+### To send email when the job is completed:
+#PBS -m ae
+#PBS -M lynn.sanford@colorado.edu
+
+### Specify localhost and an NFS filesystem to prevent file copy errors.
+#PBS -e localhost:/Users/lysa8537/2016_07_RNASeq/Samples/KCl_only/Rep1/04_mapping/OUTERR/bowtie.KCl_Rep1.trim_beg10.very_sensitive.err
+#PBS -o localhost:/Users/lysa8537/2016_07_RNASeq/Samples/KCl_only/Rep1/04_mapping/OUTERR/bowtie.KCl_Rep1.trim_beg10.very_sensitive.out
+
+### Specify the number of cpus for your job
+### #PBS -l nodes=1:ppn=16
+
+### Tell PBS how much memory you expect to use. Use units of 'b','kb', 'mb' or 'gb'.
+#PBS -l mem=8gb
+
+### Tell PBS the anticipated run-time for your job, where walltime=HH:MM:SS
+#PBS -l walltime=48:00:00
+
+### Switch to the working directory; by default TORQUE launches processes
+### from your home directory.
+cd $PBS_O_WORKDIR
+echo Working directory is $PBS_O_WORKDIR
+
+# Calculate the number of processors allocated to this run.
+NPROCS=`wc -l < $PBS_NODEFILE`
+
+# Calculate the number of nodes allocated.
+NNODES=`uniq $PBS_NODEFILE | wc -l`
+
+### Display the job context
+echo Running on host `hostname`
+echo Time is `date`
+echo Directory is `pwd`
+echo Using ${NPROCS} processors across ${NNODES} nodes
+
+### Assign path variables 
+INDEX='/scratch/Users/lysa8537/Bowtie2Indexes/rn6'
+SCRATCH='/scratch/Users/lysa8537/'
+KCLREP1='/Users/lysa8537/2016_07_RNASeq/Samples/KCl_only/Rep1/'
+
+### Load modules
+module load bowtie_bowtie2-2.2.3
+module load samtools_1.2
+
+### Run my commands, or whatever else IN SCRATCH
+
+### index rn6 genome
+### Usage: bowtie2-build [options]* <reference_in> <bt2_index_base>
+#bowtie2-build -f /Users/lysa8537/2016_07_Neuron_RNASeq/Rat_genome_rn6/genome/rn6.fa $INDEX/rn6
+
+### Sync files over to scratch
+###rsync $KCLREP1/03_trimming/LS_KCl_01_S1_R1_trim_beg10.fastq $SCRATCH/2016_07_RNASeq/KCl_Rep1/trimming/
+###rsync $KCLREP1/03_trimming/LS_KCl_01_S1_R2_trim_beg10.fastq $SCRATCH/2016_07_RNASeq/KCl_Rep1/trimming/
+
+### map reads with bowtie2
+### bowtie2 [options]* -x <bt2-idx> {-1 <m1> -2 <m2> | -U <r>} [-S <sam>]
+
+### run bowtie2 paired-end
+bowtie2 -q --phred33 --very-sensitive -p 16 --fr --minins 50 --maxins 10000 -x $INDEX/rn6 -1 $SCRATCH/2016_07_RNASeq/KCl_Rep1/trimming/LS_KCl_01_S1_R1_trim_beg10.fastq -2 $SCRATCH/2016_07_RNASeq/KCl_Rep1/trimming/LS_KCl_01_S1_R2_trim_beg10.fastq -S $SCRATCH/2016_07_RNASeq/KCl_Rep1/mapping/KCl_Rep1_trim_beg10_very_sensitive.sam
+
+### convert SAM to BAM
+### samtools view [options] <in.bam>|<in.sam>|<in.cram> [region ...]
+samtools view -bS -o $SCRATCH/2016_07_RNASeq/KCl_Rep1/mapping/KCl_Rep1_trim_beg10_very_sensitive.bam $SCRATCH/2016_07_RNASeq/KCl_Rep1/mapping/KCl_Rep1_trim_beg10_very_sensitive.sam
+
+### Usage: samtools sort [options...] [in.bam]
+samtools sort $SCRATCH/2016_07_RNASeq/KCl_Rep1/mapping/KCl_Rep1_trim_beg10_very_sensitive.bam $SCRATCH/2016_07_RNASeq/KCl_Rep1/mapping/KCl_Rep1_trim_beg10_very_sensitive.sorted
+
+### Index sorted BAM file; needed for downstream steps
+### Usage: samtools index [-bc] [-m INT] <in.bam> [out.index]
+samtools index $SCRATCH/2016_07_RNASeq/KCl_Rep1/mapping/KCl_Rep1_trim_beg10_very_sensitive.sorted.bam
+
+#Sync back from scratch
+rsync $SCRATCH/2016_07_RNASeq/KCl_Rep1/mapping/KCl_Rep1_trim_beg10_very_sensitive.* $KCLREP1/04_mapping/
+
+#Final time stamp
+echo Time is `date`

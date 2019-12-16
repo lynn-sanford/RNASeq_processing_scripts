@@ -1,0 +1,81 @@
+### Set the job name
+#PBS -N tophat
+
+### Run in the queue named 
+#PBS -q long8gb
+
+### Use the bourne again shell
+#PBS -S /bin/bash
+
+### Pass enviroment variables to the job
+#PBS -V
+
+### To send email when the job is completed:
+#PBS -m ae
+#PBS -M lynn.sanford@colorado.edu
+
+### Specify localhost and an NFS filesystem to prevent file copy errors.
+#PBS -e localhost:/Users/lysa8537/2016_07_RNASeq/Samples/KCl_only/Rep1/04_mapping/tophat.KCl_Rep1_trim_beg10.very_sensitive.err
+#PBS -o localhost:/Users/lysa8537/2016_07_RNASeq/Samples/KCl_only/Rep1/04_mapping/tophat.KCl_Rep1_trim_beg10.very_sensitive.out
+
+### Specify the number of cpus for your job
+#PBS -l nodes=1:ppn=16
+
+### Tell PBS how much memory you expect to use. Use units of 'b','kb', 'mb' or 'gb'.
+#PBS -l mem=15gb
+
+### Tell PBS the anticipated run-time for your job, where walltime=HH:MM:SS
+#PBS -l walltime=48:00:00
+
+### Switch to the working directory; by default TORQUE launches processes
+### from your home directory.
+cd $PBS_O_WORKDIR
+echo Working directory is $PBS_O_WORKDIR
+
+# Calculate the number of processors allocated to this run.
+NPROCS=`wc -l < $PBS_NODEFILE`
+
+# Calculate the number of nodes allocated.
+NNODES=`uniq $PBS_NODEFILE | wc -l`
+
+### Display the job context
+echo Running on host `hostname`
+echo Time is `date`
+echo Directory is `pwd`
+echo Using ${NPROCS} processors across ${NNODES} nodes
+
+
+### Assign path variables 
+TOPHAT="/scratch/Users/lysa8537/2016_07_RNASeq/KCl_Rep1/mapping/tophat"
+SCRATCH='/scratch/Users/lysa8537'
+
+### Load the tophat2 module and its dependencies
+module load bowtie_bowtie2-2.0.2
+module load samtools_0.1.18
+module load tophat_2.0.6
+
+### map reads with tophat
+# Assumes that bowtie index files have already been created
+### tophat [options] <bowtie_index> <reads1[,reads2,...]>
+tophat2 --b2-very-sensitive -p 16 -r 240 --mate-std-dev 105 \
+--library-type fr-secondstrand --rg-id lysa8537 --rg-sample Rat \
+-o $TOPHAT -G $SCRATCH/genome_ref/rn6_genes.gtf \
+$SCRATCH/Bowtie2Indexes/rn6/rn6 $SCRATCH/2016_07_RNASeq/KCl_Rep1/trimming/LS_KCl_01_S1_R1_trim_beg10.fastq \
+$SCRATCH/2016_07_RNASeq/KCl_Rep1/trimming/LS_KCl_01_S1_R2_trim_beg10.fastq
+
+### rename tophat file
+mv $TOPHAT/accepted_hits.bam $TOPHAT/KCl_Rep1_trim_beg10.tophat.accepted_hits.bam
+
+### get alignment stats
+samtools flagstat $TOPHAT/KCl_Rep1_trim_beg10.tophat.accepted_hits.bam > $TOPHAT/KCl_Rep1_trim_beg10.tophat.accepted_hits.alignment_stats.txt
+
+### create an index for accepted_hits.bam 
+samtools index $TOPHAT/KCl_Rep1_trim_beg10.tophat.accepted_hits.bam
+
+### MOVE MY OUTPUTS BACK TO HOME STORAGE
+rsync $TOPHAT/KCl_Rep1_trim_beg10.tophat.accepted_hits.bam $HOME/2016_07_RNASeq/Samples/KCl_only/Rep1/04_mapping/
+rsync $TOPHAT/KCl_Rep1_trim_beg10.tophat.accepted_hits.bam.bai $HOME/2016_07_RNASeq/Samples/KCl_only/Rep1/04_mapping/
+rsync $TOPHAT/KCl_Rep1_trim_beg10.tophat.accepted_hits.alignment_stats.txt $HOME/2016_07_RNASeq/Samples/KCl_only/Rep1/04_mapping/
+
+#Final time stamp
+echo Time is `date`

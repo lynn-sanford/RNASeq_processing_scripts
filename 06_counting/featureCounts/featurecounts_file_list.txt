@@ -1,0 +1,9 @@
+/scratch/Users/lysa8537/2016_07_RNASeq/KCl_Rep1/mapping/tophat/KCl_Rep1_trim_beg10.tophat.igenome.bam
+/scratch/Users/lysa8537/2016_07_RNASeq/KCl_Rep2/mapping/tophat/KCl_Rep2_trim_beg10.tophat.igenome.bam
+/scratch/Users/lysa8537/2016_07_RNASeq/KCl_Rep3/mapping/tophat/KCl_Rep3_trim_beg10.tophat.igenome.bam
+/scratch/Users/lysa8537/2016_07_RNASeq/KCl_TPA_Rep1/mapping/tophat/KCl_TPA_Rep1_trim_beg10.tophat.igenome.bam
+/scratch/Users/lysa8537/2016_07_RNASeq/KCl_TPA_Rep2/mapping/tophat/KCl_TPA_Rep2_trim_beg10.tophat.igenome.bam
+/scratch/Users/lysa8537/2016_07_RNASeq/KCl_TPA_Rep3/mapping/tophat/KCl_TPA_Rep3_trim_beg10.tophat.igenome.bam
+/scratch/Users/lysa8537/2016_07_RNASeq/KCl_Zn_Rep1/mapping/tophat/KCl_Zn_Rep1_trim_beg10.tophat.igenome.bam
+/scratch/Users/lysa8537/2016_07_RNASeq/KCl_Zn_Rep2/mapping/tophat/KCl_Zn_Rep2_trim_beg10.tophat.igenome.bam
+/scratch/Users/lysa8537/2016_07_RNASeq/KCl_Zn_Rep3/mapping/tophat/KCl_Zn_Rep3_trim_beg10.tophat.igenome.bam
