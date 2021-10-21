@@ -1,3 +1,7 @@
+These scripts were used in RNA-seq processing in Amy Palmer's lab prior to 2020
+
+
+
 In these scripts, anything in <brackets> should be replaced without brackets
 -Any paths should almost certainly be replaced - these were all for mine and will almost certainly not work with yours
 
